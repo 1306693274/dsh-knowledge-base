@@ -104,6 +104,32 @@ curl -fsS http://127.0.0.1:<DSH端口>/plugins/dsh-knowledge-base/status
 
 **判据**：`/index` 的 `data.categories` 出现新分类，且 `data.counts[新id] > 0`。
 
+
+### 机器上有多个项目文件夹 → 一次全接进来（不要「三选一」）
+
+很多人的规则不是集中在一个目录，而是**每个项目一份**（`项目A/AGENTS.md`、`项目B/rules/`、`项目C/skills/`）。
+这里**不要问用户「要只扫规则 / 只扫默认 / 全量递归」**——那三个选项都会漏掉一部分项目。正确做法：
+
+```bash
+B=http://127.0.0.1:<端口>/plugins/dsh-knowledge-base
+curl -fsS "$B/discover"            # 列出候选目录（每项带 md 数量、有没有 AGENTS.md / skills、建议分类）
+```
+
+看 `candidates`：`hasAgents` / `hasSkills` 为真、或 `md` 较多的，基本就是「项目根」；`.../docs` 这类第三方仓库文档已经被排除。
+然后把**用户确认要的那些**一次写进配置（`root` 可以直接写该项目的绝对路径，路径怎么放都行）：
+
+```bash
+curl -fsS -X POST "$B/sources" -H "content-type: application/json" -d '{"sources":[{"cat":"general","group":"项目 alpha","root":"D:/work/alpha","path":".","dir":true},{"cat":"general","group":"项目 beta","root":"D:/work/beta","path":".","dir":true}]}'
+```
+
+- 写入 `~/.dsh/知识库/知识库.json`（写前自动备份 `.bak-时间戳`），**同一条不会重复加**（`added: 0` 就是已经在里面了）。
+- `sources[].root` 既可以是内置名（`dsh` / `pkg` / `work`），也可以是**任意绝对路径**；`roots` 里也可以自己加键（`roots.projectA`…）。
+- 一个项目只想收第一层的规则、不想要它的子目录：用 `"dirOnly": true`；只想收技能：`"path": "skills", "dir": true, "only": "SKILL.md"`。
+
+**判据**：`/index?force=1` 里能看到每个项目的 `AGENTS.md` 与它自己的技能名；`/status` 的 `sources` 数量等于「默认 + 项目数」。
+
+**别做**：把整个工作区根（比如 `E:/` 或 `D:/work`）直接加成一个 source——那会把所有项目的产物、依赖、日志都扫进来，条目上万，反而找不到东西。要按项目加。
+
 ### 第 4 步（可选）：路由线——让画布画出一跳、二跳
 
 画布的路由线来自 `~/.dsh/AGENTS.md` 里的一张表。**表头必须包含这五个字**：`这件事一出现`（插件按这五个字定位表，找不到就只画文件和分类，不画路由线）。

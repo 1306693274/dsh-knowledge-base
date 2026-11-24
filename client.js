@@ -14,7 +14,7 @@ window.__ModuleLoader__.load({
     const React = require('react')
     const h = React.createElement
     const ROUTE = '/plugins/dsh-knowledge-base'
-    const BUILD = '0.23.0'
+    const BUILD = '0.24.0'
 
 // 客户端 Cordis ctx：apply 时存下来，面板里才拿得到 uiWorkspace 这类服务
 let CORDIS = null

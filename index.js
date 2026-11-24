@@ -12,7 +12,7 @@
  */
 
 import { readFile, writeFile, mkdir, readdir, stat, copyFile } from 'node:fs/promises'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
@@ -25,7 +25,7 @@ const GUIDE_FILE = path.join(PLUGIN_DIR, 'docs', 'AI-接入指南.md')
 
 const state = { warnings: [] }
 const ROUTE = '/plugins/dsh-knowledge-base'
-const VERSION = '0.23.0'
+const VERSION = '0.24.0'
 const MAX_FILES = 8000
 // 文件体量阈值（字符数）：超过 HEAVY_CHARS 标红，提示「AI 读全文容易执行不到位，该精简」
 const HEAVY_CHARS = 12000
@@ -67,6 +67,65 @@ function encodeId(rootKey, relPath) {
   return Buffer.from(`${rootKey}|${relPath}`, 'utf8').toString('base64url')
 }
 
+/** 根解析：rootKey 既可以是内置名（dsh/pkg/work），也可以是绝对路径（多项目文件夹） */
+function resolveRoot(roots, rootKey) {
+  if (!rootKey) return ''
+  if (path.isAbsolute(String(rootKey))) return String(rootKey)
+  return roots[rootKey] ?? ''
+}
+
+/** 扫一遍候选知识目录（路由与 auto 接线共用同一套判据） */
+function discoveredFor(roots, overrideBases) {
+  const bases = []
+  if (overrideBases?.length) bases.push(...overrideBases)
+  else for (const key of ['work', 'pkg']) if (roots[key]) bases.push(roots[key])
+  if (!overrideBases?.length) {
+    const home = os.homedir()
+    for (const name of ['Documents', 'Desktop', 'Projects', 'workspace', 'code', 'dev']) {
+      const guess = path.join(home, name)
+      if (existsSync(guess)) bases.push(guess)
+    }
+  }
+  const skip = /^(node_modules|\.git|\.venv|venv|__pycache__|dist|build|out|target|\.next|\.cache|backups|history|logs)$/i
+  const found = []
+  const seen = new Set()
+  const walk = (dir, depth) => {
+    if (depth > 3 || found.length > 300) return
+    let entries
+    try { entries = readdirSync(dir, { withFileTypes: true }) } catch { return }
+    let md = 0
+    let hasAgents = false
+    let skillDirs = 0
+    for (const entry of entries) {
+      if (entry.isFile() && /\.md$/i.test(entry.name)) {
+  md += 1
+  if (/^AGENTS\.md$/i.test(entry.name)) hasAgents = true
+      }
+      if (entry.isDirectory() && /^(skills|技能)$/i.test(entry.name)) skillDirs += 1
+    }
+    if (md >= 2 || hasAgents || skillDirs) {
+      const key = dir.toLowerCase()
+      if (!seen.has(key)) {
+  seen.add(key)
+  found.push({ path: dir, md, hasAgents, hasSkills: Boolean(skillDirs), depth })
+      }
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue
+      if (skip.test(entry.name) || entry.name.startsWith('.')) continue
+      // 第三方仓库/工具自带的文档目录不算「你的知识」（没有 AGENTS.md 时跳过）
+      if (/^(docs?|文档|references?|参考|examples?|示例|samples?|sites?|wiki)$/i.test(entry.name)) continue
+      walk(path.join(dir, entry.name), depth + 1)
+    }
+  }
+  for (const base of bases) if (base && existsSync(base)) walk(base, 0)
+  // 被上层目录覆盖的深层候选去掉（父目录已经是一条 source 时，子目录重复没意义）
+  const covered = (inner, outer) => inner !== outer && inner.toLowerCase().startsWith(outer.toLowerCase().replace(/[\\/]+$/, '') + path.sep.toLowerCase())
+  const pruned = found.filter((item) => !found.some((other) => other !== item && other.md >= item.md && covered(item.path, other.path)))
+  pruned.sort((left, right) => right.md - left.md)
+
+  return pruned.map((item) => ({ ...item, cat: inferCat(item.path, path.basename(item.path), 'general').cat }))
+}
 function decodeId(id) {
   const raw = Buffer.from(String(id), 'base64url').toString('utf8')
   const index = raw.indexOf('|')
@@ -307,8 +366,10 @@ function readLibraryConfigSync(libraryDir) {
     const out = {}
     if (data && typeof data.roots === "object" && data.roots) {
       out.roots = {}
-      for (const key of ['dsh', 'pkg', 'work']) {
-        if (typeof data.roots[key] === "string") out.roots[key] = data.roots[key]
+      // 任意键都收：多项目文件夹可以写 roots.projectA / roots.projectB……
+      // 内置三个（dsh / pkg / work）只是默认名，不是白名单。
+      for (const [key, value] of Object.entries(data.roots)) {
+        if (typeof value === "string" && value.trim()) out.roots[key] = value.trim()
       }
     }
     if (data && Array.isArray(data.sources) && data.sources.length) {
@@ -478,7 +539,7 @@ async function scanIndex(roots, libraryDir, { force = false } = {}) {
 
   const items = []
   for (const source of SOURCES) {
-    const base = roots[source.root]
+    const base = path.isAbsolute(String(source.root ?? '')) ? source.root : roots[source.root]
     if (!base || !existsSync(base)) continue
     const push = (absPath) => {
       const rel = path.relative(base, absPath).split(path.sep).join('/')
@@ -972,6 +1033,8 @@ export function apply(ctx, config = {}) {
     dsh: config.dshRoot || custom.roots?.dsh || pathTable.dsh || dshRoot,
     pkg: config.pkgRoot || custom.roots?.pkg || pathTable.pkg || (pathTable.important ? path.join(pathTable.important, 'deepseek') : ''),
     work: config.workspaceRoot || custom.roots?.work || pathTable.work || '',
+    // 配置里额外的项目根（多项目文件夹）
+    ...Object.fromEntries(Object.entries(custom.roots ?? {}).filter(([key]) => !['dsh', 'pkg', 'work'].includes(key))),
   }
   if (custom.sources?.length) SOURCES = custom.sources
 
@@ -1025,6 +1088,57 @@ export function apply(ctx, config = {}) {
       },
     })
 
+    // 自动发现知识目录：多项目文件夹的人不用一条条手写 sources
+    // 自动发现知识目录：多项目文件夹的人不用一条条手写 sources
+    register({
+      kind: 'exact',
+      path: `${ROUTE}/discover`,
+      handler: async (req, res) => {
+        try {
+          const url = new URL(req.url, 'http://127.0.0.1')
+          const asked = url.searchParams.get('base')
+          const bases = asked ? [asked] : ['work', 'pkg'].map((key) => roots[key]).filter(Boolean).concat(['Documents', 'Desktop', 'Projects', 'workspace', 'code', 'dev'].map((name) => path.join(os.homedir(), name)).filter((dir) => existsSync(dir)))
+          const candidates = discoveredFor(roots, asked ? [asked] : undefined)
+          json(res, 200, { ok: true, bases, candidates })
+        } catch (error) { json(res, 500, { ok: false, error: String(error?.message ?? error) }) }
+      },
+    })
+    // 把发现的目录并入 知识库.json 的 sources（去重；写前备份）
+    register({
+      kind: 'exact',
+      path: `${ROUTE}/sources`,
+      handler: async (req, res) => {
+        if (req.method !== 'POST') return json(res, 405, { ok: false, error: 'method-not-allowed' })
+        try {
+          const body = JSON.parse(await readBody(req))
+          let incoming = Array.isArray(body.sources) ? body.sources : []
+          const configFile = path.join(libraryDir, '知识库.json')
+          let current = { roots: { ...roots }, sources: SOURCES.map((row) => ({ ...row })) }
+          if (existsSync(configFile)) {
+            try { current = { ...current, ...JSON.parse(readFileSync(configFile, 'utf8')) } } catch { /* 坏文件就按内存里的写 */ }
+          }
+          const before = Array.isArray(current.sources) ? current.sources : []
+          const keyOf = (row) => [row.cat, row.root, row.path ?? '', Array.isArray(row.paths) ? row.paths.join('|') : ''].join('::')
+          const have = new Set(before.map(keyOf))
+          let added = 0
+          for (const row of incoming) {
+            if (!row || typeof row !== 'object' || typeof row.path !== 'string') continue
+            if (have.has(keyOf(row))) continue
+            before.push({ cat: String(row.cat ?? 'general'), group: String(row.group ?? '其他'), root: String(row.root ?? 'work'), path: row.path, dir: row.dir !== false })
+            have.add(keyOf(row))
+            added += 1
+          }
+          current.roots = current.roots ?? { ...roots }
+          current.sources = before
+          await mkdir(libraryDir, { recursive: true })
+          if (existsSync(configFile)) await copyFile(configFile, configFile + '.bak-' + Date.now())
+          await writeFile(configFile, JSON.stringify(current, null, 2) + '\n', 'utf8')
+          SOURCES = before.map((row) => ({ ...row, cat: String(row.cat ?? 'general'), group: String(row.group ?? '其他') }))
+          cache.payload = null
+          json(res, 200, { ok: true, added, total: before.length, file: configFile })
+        } catch (error) { json(res, 400, { ok: false, error: String(error?.message ?? error) }) }
+      },
+    })
     register({
       kind: 'exact',
       path: `${ROUTE}/index`,
@@ -1050,7 +1164,7 @@ export function apply(ctx, config = {}) {
             return json(res, 200, { ok: true, id, kind: 'valve', content: JSON.stringify(valve, null, 2), readonly: true, path: path.join(roots.work, 'tools', 'valve-registry.json') })
           }
           const { rootKey, relPath } = decodeId(id)
-          const abs = safeJoin(roots[rootKey] ?? '', relPath)
+          const abs = safeJoin(resolveRoot(roots, rootKey), relPath)
           if (!existsSync(abs)) return json(res, 404, { ok: false, error: 'not-found', path: abs })
           json(res, 200, { ok: true, id, kind: 'file', content: await readFile(abs, 'utf8'), path: abs, relPath, rootKey, readonly: false })
         } catch (error) { json(res, 500, { ok: false, error: String(error?.message ?? error) }) }
@@ -1066,7 +1180,7 @@ export function apply(ctx, config = {}) {
           const body = JSON.parse(await readBody(req))
           if (String(body.id ?? '').startsWith('valve|')) return json(res, 400, { ok: false, error: 'valve-readonly' })
           const { rootKey, relPath } = decodeId(body.id)
-          const abs = safeJoin(roots[rootKey] ?? '', relPath)
+          const abs = safeJoin(resolveRoot(roots, rootKey), relPath)
           if (!existsSync(abs)) return json(res, 404, { ok: false, error: 'not-found' })
           const backup = await backupFile(libraryDir, rootKey, relPath, abs)
           await writeFile(abs, String(body.content ?? ''), 'utf8')
@@ -1249,7 +1363,7 @@ export function apply(ctx, config = {}) {
         try {
           const body = JSON.parse(await readBody(req))
           const { rootKey, relPath } = decodeId(body.id)
-          const abs = safeJoin(roots[rootKey] ?? '', relPath)
+          const abs = safeJoin(resolveRoot(roots, rootKey), relPath)
           if (!existsSync(abs)) return json(res, 404, { ok: false, error: 'not-found' })
           const wanted = String(body.backup ?? '')
           if (!wanted || wanted.includes('..') || wanted.includes('/') || wanted.includes('\\')) return json(res, 400, { ok: false, error: 'bad-backup' })

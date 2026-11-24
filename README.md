@@ -91,6 +91,21 @@ Nothing configured? It still runs with a minimal default and prints which root i
 
 **For AI agents**: [`docs/AI-接入指南.md`](docs/AI-接入指南.md) is written *for an agent to execute* — field semantics, the exact table header a route table must contain, the section titles a plugin-ownership document must use, a failure lookup table, and a completion checklist. It is also served live at `GET /plugins/dsh-knowledge-base/guide`.
 
+### Several project folders?
+
+Most people do not keep all rules in one place — each project has its own `AGENTS.md` / `rules/` / `skills/`.
+Ask the panel what is on the machine, then add the projects you want:
+
+```bash
+B=http://127.0.0.1:<port>/plugins/dsh-knowledge-base
+curl -fsS "$B/discover"   # candidate folders, each with md count + whether it has AGENTS.md / skills/
+curl -fsS -X POST "$B/sources" -H "content-type: application/json" \
+  -d '{"sources":[{"cat":"general","group":"alpha","root":"D:/work/alpha","path":".","dir":true}]}'
+```
+
+`sources[].root` accepts an **absolute path**, so projects can live anywhere on any drive; `roots` may also carry your own keys.
+The write goes to `~/.dsh/知识库/知识库.json` with a timestamped `.bak`, and duplicates are skipped.
+Add projects one by one — adding a whole drive root pulls in dependencies and logs and buries the useful documents.
 ## Status rings and the numbers behind them
 
 | Ring | Condition | Why |

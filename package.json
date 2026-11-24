@@ -1,6 +1,6 @@
 {
   "name": "dsh-knowledge-base",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "private": false,
   "type": "module",
   "description": "A local knowledge base panel for DeepSeek Harness: index your rules / skills / plugins / routes across agents, draw them as a canvas, and edit the real files in place.",
