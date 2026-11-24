@@ -6,9 +6,19 @@
 
 ---
 
+![List view](docs/images/list.png)
+
+<sub>Screenshot rendered with **demo data** — invented file names, not anyone's real rules.</sub>
+
+![Canvas view](docs/images/canvas.png)
+
+<sub>The canvas focuses on one item: upstream on the left, downstream on the right, downstream-of-downstream included.</sub>
+
+---
+
 ## Why this exists
 
-If you run several agents on one machine (a design agent, a video agent, a finance agent …), your real knowledge base ends up scattered: a global instruction file, per-agent rule folders, skill folders, plugin lists, and a routing table that points at all of them.
+If you run more than one agent on a machine (say a writing agent, a research agent and a data agent), your real knowledge base ends up scattered: one global instruction file, per-agent rule folders, skill folders, plugin lists, and a routing table pointing at all of them.
 
 You can no longer answer three questions by looking at the filesystem:
 
@@ -23,7 +33,7 @@ This plugin answers all three inside DSH, without copying anything.
 | | |
 |---|---|
 | **Real files, no copies** | The panel reads the files on disk and writes back to the same paths. Library folder only holds index cache, edit history, canvas layout, per-file overrides. |
-| **Five-class classification** | `general` / `design` / `dynamic` / `assistant` / `finance`. Categories are configurable, so you can add your own agent as a sixth. |
+| **Configurable categories** | Ships five example categories and assigns every document by **name-based domain inference** (not a keyword dump). Rename them, or add your own agents as more categories, in one config file. |
 | **Canvas with focus** | Every file is a node. Selecting one shows **upstream → this → downstream** (and downstream of downstream). Lines are typed: route / valve / category / reference / plugin. |
 | **Size & status rings** | 🔴 will be truncated (hard limit) · 🟠 long, worth trimming · 🟢 fine · ⚪ never referenced. Thresholds and rationale below. |
 | **Plugin ownership** | A "which plugin belongs to which agent" document is parsed into plugin nodes you can click to read what the plugin does. |
@@ -94,6 +104,15 @@ Both use temporary directories and touch no user data.
 - **Own your sync.** Whatever syncs your files keeps doing it.
 - **Install or remove plugins.** It only records which agent *owns* which plugin; management still belongs to DSH.
 
+## Images
+
+`docs/images/*.png` are rendered from the demo pages next to them (`docs/images/demo-*.html`) with **invented content**, so the screenshots show the layout without exposing anyone's real knowledge base. Regenerate:
+
+```bash
+msedge --headless=new --window-size=1240,720 --force-device-scale-factor=1.5 \
+  --screenshot=docs/images/canvas.png docs/images/demo-canvas.html
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
@@ -104,6 +123,12 @@ MIT — see [LICENSE](LICENSE).
 ## 中文
 
 **这是什么**：一个挂在 DSH 左栏的「知识库」面板。把你机器上**已经存在**的规则、知识、技能、插件清单、路由表汇总成一个列表 + 一张无限画布，并且**就地改原文件**——不复制、不导入。
+
+**界面长这样**（示例数据，不是任何人的真实规则）：
+
+![列表](docs/images/list.png)
+
+![画布](docs/images/canvas.png)
 
 **为什么需要它**：一台机器上跑好几个 Agent 时，真正的知识库散在好几十个目录里：全局指令、每个 Agent 的规则目录、技能目录、插件清单、路由表。光看文件系统已经回答不了三个问题——我到底有哪些？这条属于哪个 Agent、它的上级和下级是谁？哪几份已经大到模型读不全？
 

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><title>知识库 · 列表</title>
+<style>
+  :root{
+    --border:#e3e5e9; --border2:#d2d6dc; --bg:#ffffff; --bg2:#fafbfc; --bg3:#f3f5f7;
+    --fg:#1d2129; --fg2:#6b7280;
+    --green:#2f9e5f; --orange:#e08b2d; --red:#d13b30; --gray:#9a9a9a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Microsoft YaHei","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:13px}
+  .bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .title{font-weight:700;font-size:15px}
+  .muted{color:var(--fg2);font-size:11.5px}
+  .tabs{display:flex;gap:2px;background:var(--bg3);padding:2px;border-radius:8px}
+  .tab{padding:4px 10px;border-radius:6px;font-size:12px;color:var(--fg2)}
+  .tab.on{background:#fff;color:var(--fg);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .search{flex:1;min-width:160px;max-width:260px;margin-left:auto;padding:5px 10px;border:1px solid var(--border2);border-radius:8px;color:var(--fg2);font-size:12px}
+  .btn{padding:4px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;color:var(--fg)}
+  .btn.primary{background:#1d2129;color:#fff;border-color:#1d2129}
+  .legend{display:flex;align-items:center;gap:6px;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap}
+  .ring{width:9px;height:9px;border-radius:50%;box-sizing:border-box;border:2px solid var(--gray);display:inline-block;flex:0 0 auto}
+  .ring.ok{border-color:var(--green)}
+  .ring.heavy{border-color:var(--orange)}
+  .ring.hard{border-color:var(--red);border-width:3px}
+  .ring.unused{border-color:var(--gray);border-style:dashed}
+  .body{display:flex;min-height:calc(700px - 96px)}
+  .list{width:52%;border-right:1px solid var(--border);padding:6px 0 14px}
+  .group{padding:9px 14px 5px;font-size:11px;color:var(--fg2);font-weight:600;letter-spacing:.2px}
+  .row{display:flex;align-items:center;gap:8px;padding:5px 14px}
+  .row.on{background:#eef4ff}
+  .row-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chars{font-size:10.5px;color:var(--fg2);white-space:nowrap}
+  .type{font-size:10px;padding:0 5px;border-radius:5px;border:1px solid var(--border2);color:var(--fg2);white-space:nowrap}
+  .main{flex:1;padding:14px 18px;background:var(--bg2)}
+  .fbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .doc-title{font-weight:700;font-size:14px}
+  .doc{margin-top:8px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;line-height:1.85;color:#333}
+  .doc h4{margin:0 0 6px;font-size:12.5px;color:var(--fg)}
+  .doc code{background:var(--bg3);padding:1px 4px;border-radius:4px;font-size:11.5px}
+  .stat{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:11.5px;color:var(--fg2)}
+</style></head>
+<body>
+  <div class="bar">
+    <span class="title">知识库</span>
+    <span class="muted">主机 v0.24.0</span>
+    <div class="tabs">
+      <span class="tab on">全部 35</span><span class="tab">写作 8</span><span class="tab">研究 6</span><span class="tab">数据 5</span><span class="tab">通用 16</span>
+    </div>
+    <input class="search" value="搜标题或路径" readonly>
+    <span class="btn">显示参考与记录 3</span>
+    <span class="btn">接入指南</span>
+    <div class="tabs" style="margin-left:6px"><span class="tab">画布</span><span class="tab on">文件</span></div>
+    <span class="btn primary">重新扫描</span>
+  </div>
+  <div class="legend">
+    <span class="ring hard"></span><span class="muted">必被截断·马上改</span>
+    <span class="ring heavy"></span><span class="muted">偏多·该注意(&gt;1.2万字)</span>
+    <span class="ring ok"></span><span class="muted">合适</span>
+    <span class="ring unused"></span><span class="muted">没被引用</span>
+    <span class="muted" style="margin-left:8px">（只有这四色；左侧不再有第二个彩色点）</span>
+  </div>
+  <div class="body">
+    <div class="list">
+      <div class="group">插件归属 · 2</div>
+      <div class="row"><span class="ring ok"></span><span class="row-title">通用插件清单</span><span class="chars">5.2 千字</span><span class="type">插件</span></div>
+      <div class="row"><span class="ring unused"></span><span class="row-title">写作 Agent 插件与工具归属</span><span class="chars">3.1 千字</span><span class="type">插件</span></div>
+
+      <div class="group">根目录规则与流程 · 7</div>
+      <div class="row on"><span class="ring ok"></span><span class="row-title">发布流程</span><span class="chars">1.7 千字</span><span class="type">流程</span></div>
+      <div class="row"><span class="ring heavy"></span><span class="row-title">代码评审清单</span><span class="chars">1.4 万字</span><span class="type">规则</span></div>
+      <div class="row"><span class="ring ok"></span><span class="row-title">命名规范</span><span class="chars">2.6 千字</span><span class="type">规则</span></div>
+      <div class="row"><span class="ring hard"></span><span class="row-title">全局指令（AGENTS.md）</span><span class="chars">6.7 万字</span><span class="type">索引</span></div>
+      <div class="row"><span class="ring ok"></span><span class="row-title">错误处理与重试</span><span class="chars">4.8 千字</span><span class="type">知识</span></div>
+      <div class="row"><span class="ring unused"></span><span class="row-title">旧版接口迁移笔记</span><span class="chars">9.1 千字</span><span class="type">知识</span></div>
+
+      <div class="group">知识库 · 6</div>
+      <div class="row"><span class="ring ok"></span><span class="row-title">测试策略</span><span class="chars">5.6 千字</span><span class="type">知识</span></div>
+      <div class="row"><span class="ring ok"></span><span class="row-title">日志与可观测性</span><span class="chars">3.3 千字</span><span class="type">知识</span></div>
+      <div class="row"><span class="ring heavy"></span><span class="row-title">性能调优手册</span><span class="chars">1.3 万字</span><span class="type">知识</span></div>
+      <div class="row"><span class="ring unused"></span><span class="row-title">历史故障复盘</span><span class="chars">8.9 千字</span><span class="type">知识</span></div>
+
+      <div class="group">技能 · 4</div>
+      <div class="row"><span class="ring ok"></span><span class="row-title">release-check</span><span class="chars">2.2 千字</span><span class="type">技能</span></div>
+      <div class="row"><span class="ring ok"></span><span class="row-title">docs-writer</span><span class="chars">1.5 千字</span><span class="type">技能</span></div>
+      <div class="row"><span class="ring unused"></span><span class="row-title">data-export</span><span class="chars">1.1 千字</span><span class="type">技能</span></div>
+    </div>
+    <div class="main">
+      <div class="fbar">
+        <span class="doc-title">发布流程</span>
+        <span class="btn">引用到输入框</span>
+        <span class="btn">保存</span>
+        <span class="muted" style="margin-left:auto">编辑后自动存快照，可回退</span>
+      </div>
+      <div class="stat"><span class="ring ok"></span> 1.7 千字：体量合适、且被路由或阀门用得上</div>
+      <div class="doc">
+        <h4>发布流程</h4>
+        1. 改动先落分支，跑一遍固定用例表（全绿才继续）。<br>
+        2. 生成对外副本：走白名单脚本，命中私有串就整体失败。<br>
+        3. 打 tag → 写 Release → 推送；失败先查现场，不盲目重试。<br>
+        4. 回滚点保留在 <code>backups/</code>，5 分钟内能退回。
+      </div>
+    </div>
+  </div>
+</body></html>
