@@ -4,12 +4,17 @@
 > A panel for **DeepSeek Harness (DSH)** that indexes the rules, knowledge, skills and plugin lists you already have on disk — across several agents — shows them as a list and as a focusable canvas, and edits those **original files in place**. No copies, no import step.
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![release](https://img.shields.io/badge/release-v0.23.0-brightgreen.svg)](https://github.com/1306693274/dsh-knowledge-base/releases)
+[![release](https://img.shields.io/badge/release-v0.24.0-brightgreen.svg)](https://github.com/1306693274/dsh-knowledge-base/releases)
 [![no deps](https://img.shields.io/badge/dependencies-0-informational.svg)](package.json)
 
 **Keywords**: knowledge base · rules management · prompt / context management · markdown docs · multiple agents · DSH plugin · local-first
 
-**Install** (DSH → Plugins → Add plugin → pick this folder), then open **知识库 / Knowledge base** in the left sidebar. Configuration is one JSON file — see [Configuration](#configuration-the-only-thing-you-must-do).
+**Install** — either way works:
+
+- **Desktop app**: DSH → Plugins → Add plugin → pick this folder (or the cloned repo).
+- **CLI profile**: `dsh plugin --profile web add github:1306693274/dsh-knowledge-base` — swap `web` for your own CLI profile name.
+
+Then open **知识库 / Knowledge base** in the left sidebar. Configuration is one JSON file — see [Configuration](#configuration-the-only-thing-you-must-do).
 
 [中文说明见下方](#中文).
 
@@ -61,10 +66,13 @@ This plugin answers all three inside DSH, without copying anything.
 
 ## Install
 
+Desktop app: **DSH → Plugins → Add plugin → pick this folder** (or the cloned repository). CLI profile:
+
 ```bash
-# from the plugin folder (linked install)
-plugin_manager install_bundle  →  or: DSH → Plugins → Add plugin → pick this folder
+dsh plugin --profile web add github:1306693274/dsh-knowledge-base
 ```
+
+Replace `web` with your own CLI profile name; profiles owned by the desktop app (`desktop`) refuse CLI installs — use the Plugins page there.
 
 After installing, open **知识库 / Knowledge base** in the left sidebar. If the list is empty, read the next section — it is a configuration problem, never a crash.
 
@@ -176,6 +184,8 @@ MIT — see [LICENSE](LICENSE).
 - 右键引用：把 `@"绝对路径"` 直接放进对话输入框，接着写要求
 - 两跳路由：`AGENTS.md` 里先判领域，再跳到该领域的路由文件，画布上画成线
 - 就地编辑 + 历史快照：改坏了能退；改路由表会回读校验，不一致自动回滚
+
+**怎么装**：桌面版走「DSH → 插件 → 添加插件 → 选这个文件夹（或 clone 下来的仓库）」；命令行 profile 用 `dsh plugin --profile web add github:1306693274/dsh-knowledge-base`（`web` 换成你自己的 profile 名，桌面版管的 `desktop` 不允许命令行装）。
 
 **装完要做的唯一一件事**：在 `~/.dsh/知识库/知识库.json` 里告诉它扫哪些目录（字段见上面的英文节）。没配也能跑，会用一份最小默认并在界面顶部提示哪个根没接上，不会白屏。
 
