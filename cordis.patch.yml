@@ -1,0 +1,6 @@
+- insert:
+    - id: knowledge-base
+      name: dsh-knowledge-base
+      config:
+        libraryDir: ''
+        workspaceRoot: ''

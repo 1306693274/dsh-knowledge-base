@@ -1,0 +1,11 @@
+node_modules/
+*.tgz
+*.log
+.DS_Store
+Thumbs.db
+知识库.json
+知识库.json.example
+分类.json
+分类覆盖.json
+画布布局.json
+history/

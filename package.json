@@ -1,0 +1,53 @@
+{
+  "name": "dsh-knowledge-base",
+  "version": "0.23.0",
+  "private": false,
+  "type": "module",
+  "description": "A local knowledge base panel for DeepSeek Harness: index your rules / skills / plugins / routes across agents, draw them as a canvas, and edit the real files in place.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-slots"
+      ]
+    }
+  },
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "knowledge-base",
+    "agents",
+    "skills",
+    "canvas"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1306693274/dsh-knowledge-base.git"
+  },
+  "bugs": {
+    "url": "https://github.com/1306693274/dsh-knowledge-base/issues"
+  },
+  "homepage": "https://github.com/1306693274/dsh-knowledge-base#readme",
+  "author": "1306693274"
+}

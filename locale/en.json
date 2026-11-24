@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Knowledge base",
+    "description": "Rule and knowledge browser that edits the original files in place: rules, knowledge, skills, valves, and routes in one page, opened from a left sidebar entry and grouped into General plus the four agents.",
+    "detail": "docs/DETAIL.md"
+  }
+}
