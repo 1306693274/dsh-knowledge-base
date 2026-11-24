@@ -1,95 +1,177 @@
 <!doctype html>
-<html lang="zh"><head><meta charset="utf-8"><title>知识库 · 画布</title>
+<html lang="zh"><head><meta charset="utf-8"><title>知识库 · 画布（示例数据）</title>
 <style>
-  :root{
-    --border:#e3e5e9; --border2:#d2d6dc; --bg:#ffffff; --bg2:#fafbfc; --bg3:#f3f5f7;
-    --fg:#1d2129; --fg2:#6b7280;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:"Microsoft YaHei","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:13px}
-  .bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .title{font-weight:700;font-size:15px}
-  .muted{color:var(--fg2);font-size:11.5px}
-  .tabs{display:flex;gap:2px;background:var(--bg3);padding:2px;border-radius:8px}
-  .tab{padding:4px 10px;border-radius:6px;font-size:12px;color:var(--fg2)}
-  .tab.on{background:#fff;color:var(--fg);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
-  .btn{padding:4px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px}
-  .legend{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;font-size:11.5px;color:var(--fg2)}
-  .sw{width:26px;height:0;border-top:2px solid #1d2129;display:inline-block}
-  .sw.v{border-top:2px dashed #c4553b}
-  .sw.c{border-top:1px solid #9aa0a6}
-  .sw.r{border-top:1px dotted #5a8fa8}
-  .canvas{position:relative;height:620px;background:
-     radial-gradient(circle at 1px 1px, #e7eaee 1px, transparent 0) 0 0/22px 22px;}
-  .node{position:absolute;width:186px;height:52px;border:1px solid var(--border2);border-radius:9px;background:#fff;
-        display:flex;flex-direction:column;justify-content:center;padding:0 10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-  .node .l{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .node .s{font-size:10px;color:var(--fg2);margin-top:2px}
-  .node.root{border-width:3px;border-color:#2b6cf6;font-weight:700}
-  .node.cat{border-style:dashed;background:transparent;font-weight:600}
-  .node.on{box-shadow:0 0 0 2px #2b6cf6}
-  .node.s-ok{border-left:3px solid #2f9e5f}
-  .node.s-heavy{border-left:3px solid #e08b2d}
-  .node.s-unused{border-left:3px dotted #9a9a9a}
-  svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-  .side{position:absolute;right:14px;top:14px;width:262px;background:#fff;border:1px solid var(--border2);border-radius:10px;
-        box-shadow:0 8px 24px rgba(0,0,0,.12);padding:10px 12px;font-size:11.5px;color:var(--fg2);line-height:1.7}
-  .side h4{margin:2px 0 6px;font-size:12px;color:var(--fg)}
-  .side .rowline{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed #eceef1}
-  .badge{font-size:10px;border:1px solid var(--border2);border-radius:5px;padding:0 5px;color:var(--fg2)}
+/* DSH 的主题变量（浅色）——页面脱离 DSH 就没有它们，不补的话边框和线会全变透明 */
+:root{
+  --dsw-alias-bg-base:#ffffff;
+  --dsw-alias-bg-layer-1:#f7f8fa;
+  --dsw-alias-bg-layer-2:#ffffff;
+  --dsw-alias-label-primary:#1d2129;
+  --dsw-alias-label-secondary:#6b7280;
+  --dsw-alias-border-l1:#e8eaee;
+  --dsw-alias-border-l2:#dfe3e8;
+  --dsw-alias-brand-primary:#2b6cf6;
+  --ds-font-family-code:ui-monospace, Consolas, monospace;
+}
+
+.kb-wrap{display:flex;flex-direction:column;height:100%;min-height:0;font-size:13px;color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-base);}
+.kb-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);flex-wrap:wrap;}
+.kb-title{font-weight:600;font-size:14px;margin-right:6px;}
+.kb-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.kb-tab{font:inherit;font-size:12px;padding:4px 10px;border-radius:7px;cursor:pointer;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);}
+.kb-tab[data-on="1"]{background:var(--dsw-alias-brand-primary);border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary-foreground);font-weight:600;}
+.kb-select{font:inherit;font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);outline:none;}
+.kb-search{flex:0 1 200px;min-width:110px;font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);outline:none;}
+.kb-btn{font:inherit;font-size:12px;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);}
+.kb-btn[data-on="1"]{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-brand-primary);font-weight:600;}
+.kb-btn:disabled{opacity:.5;cursor:default;}
+.kb-btn-primary{background:var(--dsw-alias-brand-primary);border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary-foreground);font-weight:600;}
+.kb-body{display:flex;flex:1;min-height:0;}
+.kb-list{width:340px;flex:0 0 340px;overflow:auto;border-right:1px solid var(--dsw-alias-border-l1);padding:6px 0 24px;}
+.kb-group{padding:8px 12px 2px;font-size:11px;letter-spacing:.4px;color:var(--dsw-alias-label-secondary);}
+.kb-row{display:flex;align-items:center;gap:8px;padding:5px 12px;cursor:pointer;border-left:2px solid transparent;}
+.kb-row:hover{background:var(--dsw-alias-bg-layer-2);}
+.kb-row[data-on="1"]{background:var(--dsw-alias-bg-layer-2);border-left-color:var(--dsw-alias-brand-primary);}
+.kb-row[data-ref="1"]{opacity:.62;}
+.kb-row-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.kb-ring{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-sizing:border-box;border:2px solid var(--dsw-alias-border-l2);}
+.kb-ring[data-status="ok"]{border-color:#2f9e5f;}
+.kb-ring[data-status="heavy"]{border-color:#e08b2d;}
+.kb-ring[data-status="hard"]{border-color:#d13b30;border-width:3px;}
+.kb-ring[data-status="unused"]{border-color:#9a9a9a;border-style:dashed;}
+
+.kb-chars{font-size:10px;color:var(--dsw-alias-label-secondary);flex:0 0 auto;white-space:nowrap;}
+.kb-type{font-size:10px;padding:0 5px;border-radius:5px;border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);flex:0 0 auto;}
+.kb-main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;}
+.kb-filebar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);flex-wrap:wrap;}
+.kb-path{font-size:11px;color:var(--dsw-alias-label-secondary);word-break:break-all;flex:1;min-width:120px;}
+.kb-dirty{font-size:11px;color:var(--dsw-alias-brand-primary);}
+.kb-editor{flex:1;min-height:0;display:flex;}
+.kb-textarea{flex:1;width:100%;box-sizing:border-box;resize:none;border:0;outline:none;padding:12px 16px;font-family:var(--ds-font-family-code,ui-monospace,Consolas,monospace);font-size:12.5px;line-height:1.65;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);}
+.kb-side{width:300px;flex:0 0 300px;overflow:auto;border-left:1px solid var(--dsw-alias-border-l1);padding:10px 12px 24px;}
+.kb-side h4{margin:12px 0 6px;font-size:11px;letter-spacing:.4px;color:var(--dsw-alias-label-secondary);font-weight:600;}
+.kb-link{display:block;width:100%;text-align:left;font:inherit;font-size:12px;padding:5px 8px;margin-bottom:4px;border-radius:7px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);cursor:pointer;overflow:hidden;text-overflow:ellipsis;}
+.kb-link:hover{border-color:var(--dsw-alias-brand-primary);}
+.kb-muted{font-size:11.5px;color:var(--dsw-alias-label-secondary);line-height:1.6;}
+.kb-toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:10px;background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l2);font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:50;}
+.kb-empty{padding:28px 20px;font-size:12px;color:var(--dsw-alias-label-secondary);line-height:1.7;}
+.kb-routes{flex:1;min-height:0;overflow:auto;padding:12px 16px 32px;display:flex;flex-direction:column;gap:8px;}
+.kb-routes-head{display:flex;flex-direction:column;gap:4px;margin-bottom:6px;}
+.kb-route-row{display:flex;align-items:center;gap:8px;}
+.kb-route-no{flex:0 0 26px;font-size:11px;color:var(--dsw-alias-label-secondary);text-align:right;}
+.kb-route-trigger{flex:0 1 300px;min-width:140px;font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);outline:none;}
+.kb-route-targets{flex:1;min-width:180px;font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);outline:none;font-family:var(--ds-font-family-code,ui-monospace,Consolas,monospace);}
+.kb-route-add{margin-top:10px;padding-top:10px;border-top:1px dashed var(--dsw-alias-border-l1);display:flex;flex-direction:column;gap:6px;}
+.kb-diff{margin-top:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);max-height:40vh;overflow:auto;}
+.kb-diff-line{font-family:var(--ds-font-family-code,ui-monospace,Consolas,monospace);font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-all;}
+.kb-diff-line[data-kind="before"]{color:#c4553b;}
+.kb-diff-line[data-kind="after"]{color:#2f7d6f;}
+.kb-canvas-wrap{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;}
+.kb-focusbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);}
+.kb-focusbadge{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary-foreground);font-weight:600;}
+.kb-focusname{font-size:13px;font-weight:600;}
+.kb-crumb{display:flex;align-items:center;gap:2px;flex-wrap:wrap;font-size:12px;}
+.kb-crumb-item{font:inherit;font-size:12px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);cursor:pointer;padding:2px 4px;border-radius:6px;}
+.kb-crumb-item:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);}
+.kb-crumb-item:disabled{color:var(--dsw-alias-label-primary);font-weight:600;cursor:default;}
+.kb-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.kb-legend-swatch{display:inline-block;width:26px;height:10px;border-radius:5px;border:0;}
+.kb-legend-swatch[data-kind="route"]{background:var(--dsw-alias-brand-primary);}
+.kb-legend-swatch[data-kind="valve"]{background:repeating-linear-gradient(90deg,#c4553b 0 6px,transparent 6px 10px);}
+.kb-legend-swatch[data-kind="cat"]{background:var(--dsw-alias-label-secondary);height:6px;opacity:.6;}
+.kb-legend-swatch[data-kind="ref"]{background:repeating-linear-gradient(90deg,#5a8fa8 0 3px,transparent 3px 7px);}
+.kb-legend-swatch[data-kind="plugin"]{background:transparent;border:2px solid var(--dsw-alias-label-secondary);height:8px;}
+.kb-legend-swatch[data-kind="status"]{background:linear-gradient(90deg,#2f9e5f 0 25%,#e08b2d 25% 50%,#d13b30 50% 75%,#9a9a9a 75% 100%);height:8px;}
+.kb-canvas-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);flex-wrap:wrap;}
+.kb-canvas{flex:1;min-height:0;position:relative;overflow:hidden;cursor:grab;background-image:radial-gradient(var(--dsw-alias-border-l1) 1px, transparent 1px);background-size:22px 22px;}
+.kb-canvas:active{cursor:grabbing;}
+.kb-canvas-inner{position:absolute;left:0;top:0;width:4000px;height:3000px;transform-origin:0 0;}
+.kb-canvas-svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;}
+.kb-edge{fill:none;stroke-width:1.6;opacity:.55;pointer-events:stroke;cursor:pointer;}
+.kb-edge[data-kind="route"]{stroke:var(--dsw-alias-brand-primary);}
+.kb-edge[data-kind="valve"]{stroke:#c4553b;stroke-dasharray:5 4;}
+.kb-edge[data-kind="cat"]{stroke:var(--dsw-alias-label-secondary);stroke-width:1.1;opacity:.45;}
+.kb-edge[data-kind="ref"]{stroke:#5a8fa8;stroke-width:1.1;stroke-dasharray:2 4;opacity:.5;}
+.kb-edge[data-on="1"]{stroke-width:2.6;opacity:1;}
+.kb-edge-label{font-size:11px;fill:var(--dsw-alias-label-secondary);paint-order:stroke;stroke:var(--dsw-alias-bg-base);stroke-width:3px;pointer-events:none;}
+.kb-node{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:0 10px;border-radius:9px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);cursor:grab;user-select:none;overflow:hidden;}
+/* 类型只用线型/粗细区分，不新增颜色：颜色统一留给下面的「状态四色」 */
+.kb-node[data-kind="root"]{border-width:3px;font-weight:600;}
+.kb-node[data-kind="ghost"]{border-style:dotted;opacity:.65;}
+.kb-node[data-kind="valve"]{border-style:dashed;border-width:2px;}
+.kb-node[data-kind="cat"]{background:transparent;font-weight:600;border-style:dashed;}
+.kb-node[data-kind="plugin"]{border-width:2px;}
+.kb-node[data-status="ok"]{border-left:3px solid #2f9e5f;}
+.kb-node[data-status="heavy"]{border-left:3px solid #e08b2d;}
+.kb-node[data-status="hard"]{border-left:4px solid #d13b30;}
+.kb-node[data-status="unused"]{border-left:3px solid #9a9a9a;border-left-style:dotted;}
+.kb-node[data-on="1"]{box-shadow:0 0 0 2px var(--dsw-alias-brand-primary);}
+.kb-node-label{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.kb-node-sub{font-size:10px;color:var(--dsw-alias-label-secondary);}
+.kb-canvas-side{position:absolute;right:12px;top:52px;width:270px;max-height:calc(100% - 70px);overflow:auto;padding:10px 12px;border-radius:10px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);box-shadow:0 8px 24px rgba(0,0,0,.16);display:flex;flex-direction:column;gap:6px;}
+.kb-canvas-side h4{margin:4px 0 2px;font-size:11px;letter-spacing:.4px;color:var(--dsw-alias-label-secondary);}
+.kb-inline-textarea{width:100%;min-height:180px;max-height:42vh;box-sizing:border-box;resize:vertical;font-family:var(--ds-font-family-code,ui-monospace,Consolas,monospace);font-size:12px;line-height:1.6;padding:8px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);outline:none;}
+.kb-input{font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);outline:none;}
+.kb-menu-backdrop{position:fixed;inset:0;z-index:60;}
+.kb-menu{position:fixed;min-width:210px;max-width:240px;padding:6px;border-radius:10px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);box-shadow:0 12px 32px rgba(0,0,0,.22);display:flex;flex-direction:column;gap:2px;}
+.kb-menu-title{padding:4px 8px 6px;font-size:11px;color:var(--dsw-alias-label-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.kb-menu-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 8px;border-radius:7px;border:0;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12.5px;cursor:pointer;text-align:left;}
+.kb-menu-item:hover{background:var(--dsw-alias-bg-layer-1);}
+.kb-menu-hint{font-size:10.5px;color:var(--dsw-alias-label-secondary);}
+.kb-guidepanel{position:fixed;inset:8% 10%;z-index:50;display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:12px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);box-shadow:0 16px 48px rgba(0,0,0,.28);}
+.kb-guidetext{flex:1;overflow:auto;margin:0;padding:10px 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-base);font-family:var(--ds-font-family-code,ui-monospace,Consolas,monospace);font-size:11.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;}
+.kb-warnbar{position:fixed;left:50%;transform:translateX(-50%);bottom:52px;z-index:40;max-width:min(760px, 90%);padding:10px 14px;border-radius:10px;border:1px solid #e0a53a;background:var(--dsw-alias-bg-layer-2);box-shadow:0 8px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:3px;font-size:12px;}
+.kb-diff-float{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:min(760px, 86%);z-index:20;}
+
+html,body{margin:0;background:var(--dsw-alias-bg-base);}
 </style></head>
 <body>
-  <div class="bar">
-    <span class="title">知识库</span><span class="muted">主机 v0.24.0</span>
-    <div class="tabs"><span class="tab">全部 35</span><span class="tab on">写作 8</span><span class="tab">研究 6</span><span class="tab">数据 5</span><span class="tab">通用 16</span></div>
-    <div class="tabs" style="margin-left:auto"><span class="tab on">画布</span><span class="tab">文件</span></div>
-    <span class="btn">重新扫描</span>
+  <div class="kb-bar">
+    <span class="kb-title">知识库</span><span class="kb-muted">主机 v0.24.0</span>
+    <div class="kb-tabs"><button class="kb-tab">全部 33</button><button class="kb-tab" data-on="1">写作 8</button><button class="kb-tab">研究 6</button><button class="kb-tab">通用 19</button></div>
+    <div class="kb-tabs" style="margin-left:auto"><button class="kb-tab" data-on="1">画布</button><button class="kb-tab">文件</button></div>
+    <button class="kb-btn">重新扫描</button>
   </div>
-  <div class="legend">
-    <span class="sw"></span>实线＝路由（这件事去哪读）
-    <span class="sw v"></span>虚线＝阀门（这条硬检查管哪些文件）
-    <span class="sw c"></span>细实线＝分类（属于哪个 Agent）
-    <span class="sw r"></span>点线＝引用（正文点名了它）
-    <span style="margin-left:6px">节点左侧竖条＝状态（红 必截断／橙 偏多／绿 合适／灰 没引用）</span>
+  <div class="kb-canvas-bar">
+    <div class="kb-legend">
+      <span class="kb-legend-swatch" data-kind="route"></span><span class="kb-muted">实线＝路由（这件事去读哪份）</span>
+      <span class="kb-legend-swatch" data-kind="valve"></span><span class="kb-muted">虚线＝阀门（这条硬检查管哪些文件）</span>
+      <span class="kb-legend-swatch" data-kind="cat"></span><span class="kb-muted">细实线＝分类（属于哪个 Agent）</span>
+      <span class="kb-legend-swatch" data-kind="ref"></span><span class="kb-muted">点线＝引用（正文点名了它）</span>
+      <span class="kb-legend-swatch" data-kind="status"></span><span class="kb-muted">节点左侧竖条＝状态（红 必截断／橙 偏多／绿 合适／灰 没引用）</span>
+    </div>
+    <div class="kb-focusbar">
+      <span class="kb-focusbadge">已聚焦</span><span class="kb-focusname">写作 Agent</span>
+      <span class="kb-muted">上级 1 · 下级 8（点节点换中心，点线看关系）</span>
+      <span class="kb-muted" style="margin-left:auto">v0.24.0</span>
+    </div>
+    <div class="kb-crumb"><button class="kb-crumb-item">AGENTS.md</button><button class="kb-crumb-item" disabled>写作 Agent</button></div>
+    <button class="kb-btn" data-on="1">显示引用线</button>
+    <button class="kb-btn">隐藏线标签</button>
+    <button class="kb-btn">回到原位</button>
+    <button class="kb-btn">回到 AGENTS.md</button>
   </div>
-  <div class="canvas">
-    <svg>
-      <line x1="196" y1="120" x2="300" y2="120" stroke="#9aa0a6" stroke-width="1.4"/>
-      <line x1="486" y1="120" x2="590" y2="120" stroke="#9aa0a6" stroke-width="1.4"/>
-      <line x1="486" y1="120" x2="590" y2="215" stroke="#9aa0a6" stroke-width="1.4"/>
-      <line x1="486" y1="120" x2="590" y2="310" stroke="#9aa0a6" stroke-width="1.4"/>
-      <line x1="380" y1="66" x2="380" y2="94" stroke="#1d2129" stroke-width="2"/>
-      <line x1="460" y1="90" x2="660" y2="86" stroke="#9aa0a6" stroke-width="1.4"/>
-      <line x1="360" y1="114" x2="200" y2="196" stroke="#9aa0a6" stroke-width="1.4"/>
-      <line x1="196" y1="120" x2="300" y2="420" stroke="#5a8fa8" stroke-width="1.1" stroke-dasharray="2 4"/>
-      <line x1="300" y1="446" x2="590" y2="500" stroke="#c4553b" stroke-width="1.6" stroke-dasharray="6 4"/>
-      <line x1="196" y1="120" x2="150" y2="380" stroke="#5a8fa8" stroke-width="1.1" stroke-dasharray="2 4"/>
-    </svg>
-
-    <div class="node root" style="left:300px;top:66px;width:160px;height:48px"><span class="l">全局指令</span><span class="s">开工索引</span></div>
-
-    <div class="node" style="left:10px;top:94px"><span class="l">领域判据</span><span class="s">分类</span></div>
-    <div class="node cat" style="left:20px;top:190px"><span class="l">写作 Agent</span><span class="s">分类</span></div>
-    <div class="node cat" style="left:590px;top:60px;width:170px"><span class="l">研究 Agent</span><span class="s">分类</span></div>
-
-    <div class="node s-ok on" style="left:196px;top:120px;width:210px;height:56px"><span class="l">发布流程</span><span class="s">流程 · 1.7 千字</span></div>
-    <div class="node s-heavy" style="left:590px;top:190px"><span class="l">代码评审清单</span><span class="s">规则 · 1.4 万字</span></div>
-    <div class="node s-unused" style="left:590px;top:285px"><span class="l">旧版接口迁移笔记</span><span class="s">知识 · 9.1 千字</span></div>
-    <div class="node s-ok" style="left:300px;top:420px;width:200px;height:52px"><span class="l">发布检查（阀门）</span><span class="s">阀门 · 只读</span></div>
-    <div class="node s-ok" style="left:30px;top:354px;width:200px;height:52px"><span class="l">命名规范</span><span class="s">规则 · 2.6 千字</span></div>
-    <div class="node s-ok" style="left:590px;top:474px;width:190px;height:52px"><span class="l">回滚手册</span><span class="s">流程 · 4.2 千字</span></div>
-
-    <div class="side">
-      <h4>选中的这条</h4>
-      <div style="color:#1d2129;font-weight:600;margin-bottom:4px">发布流程 <span class="badge">流程</span></div>
-      <div style="margin-bottom:6px">1.7 千字：体量合适、且被路由或阀门用得上</div>
-      <div class="rowline"><span>上级</span><span>写作 Agent</span></div>
-      <div class="rowline"><span>下级</span><span>发布检查 · 回滚手册</span></div>
-      <div class="rowline"><span>路由</span><span>要发版时读它</span></div>
-      <div class="rowline"><span>阀门</span><span>release-check</span></div>
-      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-        <span class="btn">引用到输入框</span><span class="btn">在文件视图打开</span>
-      </div>
+  <div class="kb-canvas" style="height:330px;overflow:hidden">
+    <div class="kb-canvas-inner" style="transform:translate(0px,0px) scale(1)">
+      <svg class="kb-canvas-svg" width="2120" height="330"><g><path d="M 220 175 C 310 175, 330 175, 420 175" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 710 175, 730 144, 820 144" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 710 175, 730 82, 820 82" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 710 175, 730 206, 820 206" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 710 175, 730 268, 820 268" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 1070 175, 1170 82, 1620 82" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 1070 175, 1170 206, 1620 206" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 1070 175, 1170 144, 1620 144" class="kb-edge" data-kind="cat" data-on="0"></path></g><g><path d="M 620 175 C 890 175, 950 82, 1220 82" class="kb-edge" data-kind="cat" data-on="0"></path></g></svg>
+      <div class="kb-node" data-kind="cat" data-status="none" data-on="0" style="left:420px;top:153px;width:200px;height:44px"><span class="kb-node-label">写作 Agent</span><span class="kb-node-sub">分类</span></div>
+<div class="kb-node" data-kind="root" data-status="none" data-on="0" style="left:20px;top:153px;width:200px;height:44px"><span class="kb-node-label">AGENTS.md</span><span class="kb-node-sub">开工索引</span></div>
+<div class="kb-node" data-kind="file" data-status="heavy" data-on="0" style="left:820px;top:60px;width:200px;height:44px"><span class="kb-node-label">代码评审清单</span><span class="kb-node-sub">规则 · 1.4 万字</span></div>
+<div class="kb-node" data-kind="file" data-status="ok" data-on="0" style="left:820px;top:122px;width:200px;height:44px"><span class="kb-node-label">发布流程</span><span class="kb-node-sub">流程 · 1.7 千字</span></div>
+<div class="kb-node" data-kind="file" data-status="ok" data-on="0" style="left:820px;top:184px;width:200px;height:44px"><span class="kb-node-label">命名规范</span><span class="kb-node-sub">规则 · 2.6 千字</span></div>
+<div class="kb-node" data-kind="file" data-status="ok" data-on="0" style="left:820px;top:246px;width:200px;height:44px"><span class="kb-node-label">release-check</span><span class="kb-node-sub">技能 · 2.2 千字</span></div>
+<div class="kb-node" data-kind="file" data-status="ok" data-on="0" style="left:1220px;top:60px;width:200px;height:44px"><span class="kb-node-label">README（目录说明）</span><span class="kb-node-sub">索引 · 1.3 千字</span></div>
+<div class="kb-node" data-kind="file" data-status="ok" data-on="0" style="left:1620px;top:60px;width:200px;height:44px"><span class="kb-node-label">测试策略</span><span class="kb-node-sub">知识 · 5.6 千字</span></div>
+<div class="kb-node" data-kind="file" data-status="unused" data-on="0" style="left:1620px;top:122px;width:200px;height:44px"><span class="kb-node-label">旧版接口迁移笔记</span><span class="kb-node-sub">知识 · 9.1 千字</span></div>
+<div class="kb-node" data-kind="file" data-status="heavy" data-on="0" style="left:1620px;top:184px;width:200px;height:44px"><span class="kb-node-label">性能调优手册</span><span class="kb-node-sub">知识 · 1.3 万字</span></div>
+    </div>
+    <div class="kb-canvas-side">
+      <h4>当前聚焦</h4>
+      <div>写作 Agent · 分类</div>
+      <div class="kb-muted">左边＝上级（往上翻一级），右边＝下级；点一下就换聚焦。点线看这条关系。</div>
+      <h4>这一类的体量</h4>
+      <div class="kb-muted">8 份文档：🟠 2 份偏长（&gt;1.2 万字）· ⚪ 1 份没被引用 · 🟢 5 份合适</div>
+      <div class="kb-route-row"><button class="kb-btn">显示引用线</button><button class="kb-btn">重新扫描</button></div>
     </div>
   </div>
 </body></html>
