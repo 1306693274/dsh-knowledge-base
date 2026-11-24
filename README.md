@@ -1,6 +1,15 @@
 # dsh-knowledge-base
 
-> A knowledge-base panel for **DeepSeek Harness (DSH)** that shows the rules, skills, plugins and routes that already live on your disk — as a list and as a canvas — and edits those **original files in place**. No copies, no import step.
+> **For people who keep their AI rules in Markdown files and lose track of them.**
+> A panel for **DeepSeek Harness (DSH)** that indexes the rules, knowledge, skills and plugin lists you already have on disk — across several agents — shows them as a list and as a focusable canvas, and edits those **original files in place**. No copies, no import step.
+
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![release](https://img.shields.io/badge/release-v0.23.0-brightgreen.svg)](https://github.com/1306693274/dsh-knowledge-base/releases)
+[![no deps](https://img.shields.io/badge/dependencies-0-informational.svg)](package.json)
+
+**Keywords**: knowledge base · rules management · prompt / context management · markdown docs · multiple agents · DSH plugin · local-first
+
+**Install** (DSH → Plugins → Add plugin → pick this folder), then open **知识库 / Knowledge base** in the left sidebar. Configuration is one JSON file — see [Configuration](#configuration-the-only-thing-you-must-do).
 
 [中文说明见下方](#中文).
 
@@ -15,6 +24,15 @@
 <sub>The canvas focuses on one item: upstream on the left, downstream on the right, downstream-of-downstream included.</sub>
 
 ---
+
+## Who this is for
+
+- You keep rules as Markdown (`AGENTS.md`, per-agent rule folders, skills, checklists) and **have stopped keeping track** of what exists.
+- You run **more than one agent** and need to know which document belongs to which one.
+- You have documents that are **too long to be read reliably** and want the ones to trim surfaced, not guessed.
+- You want edits to change the **real files**, not a copy that drifts.
+
+If your knowledge lives in a database or a SaaS wiki, this plugin is not that — it is deliberately file-first.
 
 ## Why this exists
 
@@ -121,6 +139,8 @@ MIT — see [LICENSE](LICENSE).
 
 <a id="中文"></a>
 ## 中文
+
+**适合谁**：规则/知识就以 Markdown 存在本机、并且已经理不清有哪些、哪条属于哪个 Agent、哪些长得读不全的人。
 
 **这是什么**：一个挂在 DSH 左栏的「知识库」面板。把你机器上**已经存在**的规则、知识、技能、插件清单、路由表汇总成一个列表 + 一张无限画布，并且**就地改原文件**——不复制、不导入。
 

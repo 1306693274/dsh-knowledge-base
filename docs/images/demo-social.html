@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>social preview</title>
+<style>
+  :root{ --fg:#1d2129; --fg2:#5b6472; --line:#e3e5e9; --bg:#ffffff; --accent:#2b6cf6; }
+  *{box-sizing:border-box}
+  body{margin:0;width:1280px;height:640px;font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;color:var(--fg);
+       background:radial-gradient(circle at 1px 1px, #e9edf2 1px, transparent 0) 0 0/26px 26px, #fff;overflow:hidden}
+  .wrap{padding:56px 64px;display:flex;flex-direction:column;height:100%}
+  h1{margin:0 0 10px;font-size:54px;letter-spacing:-.5px}
+  .sub{font-size:21px;max-width:1040px;color:var(--fg2);line-height:1.5;max-width:900px}
+  .chips{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
+  .chip{font-size:16px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--fg2);background:#fff}
+  .strip{display:flex;gap:22px;margin-top:auto;align-items:flex-end}
+  .mini{border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 10px 30px rgba(20,30,50,.08);overflow:hidden}
+  .mini .bar{height:34px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:8px;font-size:12px;color:var(--fg2)}
+  .dot{width:9px;height:9px;border-radius:50%;border:2px solid #2f9e5f}
+  .dot.o{border-color:#e08b2d} .dot.g{border-color:#9a9a9a;border-style:dashed}
+  .rows{padding:10px 12px;display:flex;flex-direction:column;gap:9px}
+  .r{display:flex;align-items:center;gap:9px;font-size:13px;width:330px}
+  .r span.t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .r span.c{font-size:11px;color:var(--fg2)}
+  .r span.y{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--fg2)}
+  .kb{display:flex;align-items:center;gap:14px;font-size:15px;color:var(--fg2)}
+  .kb .n{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 12px;font-size:13px;color:var(--fg)}
+  .kb .n.on{border-width:2px;border-color:var(--accent);box-shadow:0 0 0 3px rgba(43,108,246,.12)}
+  .arrow{color:#9aa0a6}
+</style></head>
+<body>
+  <div class="wrap">
+    <h1>dsh-knowledge-base</h1>
+    <div class="sub">Your rules, skills and notes are already Markdown files on disk.<br>This panel indexes them across agents, shows what belongs to whom, and edits the real files.</div>
+    <div class="chips">
+      <span class="chip">knowledge base</span>
+      <span class="chip">rules management</span>
+      <span class="chip">multiple agents</span>
+      <span class="chip">focusable canvas</span>
+      <span class="chip">local-first · no copies</span>
+      <span class="chip">DeepSeek Harness plugin</span>
+    </div>
+    <div class="strip">
+      <div class="mini">
+        <div class="bar"><span class="dot"></span><span class="dot o"></span><span class="dot g"></span>&nbsp;list view · size &amp; status</div>
+        <div class="rows">
+          <div class="r"><span class="dot"></span><span class="t">发布流程</span><span class="c">1.7 千字</span><span class="y">流程</span></div>
+          <div class="r"><span class="dot o"></span><span class="t">代码评审清单</span><span class="c">1.4 万字</span><span class="y">规则</span></div>
+          <div class="r"><span class="dot"></span><span class="t">命名规范</span><span class="c">2.6 千字</span><span class="y">规则</span></div>
+          <div class="r"><span class="dot g"></span><span class="t">旧版接口迁移笔记</span><span class="c">9.1 千字</span><span class="y">知识</span></div>
+        </div>
+      </div>
+      <div class="kb">
+        <span class="n">AGENTS.md</span><span class="arrow">→</span><span class="n on">写作 Agent</span><span class="arrow">→</span><span class="n">发布流程</span>
+      </div>
+    </div>
+  </div>
+</body></html>
