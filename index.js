@@ -25,7 +25,7 @@ const GUIDE_FILE = path.join(PLUGIN_DIR, 'docs', 'AI-接入指南.md')
 
 const state = { warnings: [] }
 const ROUTE = '/plugins/dsh-knowledge-base'
-const VERSION = '0.24.0'
+const VERSION = '0.25.0'
 const MAX_FILES = 8000
 // 文件体量阈值（字符数）：超过 HEAVY_CHARS 标红，提示「AI 读全文容易执行不到位，该精简」
 const HEAVY_CHARS = 12000
@@ -461,7 +461,48 @@ function refType(baseName) {
 
 /* ── 文件收集 ─────────────────────────────────────────────── */
 
+/* 额外排除（2026-11-24 加）：~/.dsh/知识库/排除.json 的 dirFragments，路径命中片段即跳过。
+   用途：① 自动重建的临时产物（07-对话提炼 每轮导出会重写，拆了也会被覆盖）
+        ② 原始文章 raw / 日志 / 版本归档这类过程材料。
+   注：从 0.25.0 起拆分卷（`*_分卷`）不再排除——它们进索引（volume:true）好让主文件里的
+   卷按钮能按 id 打开，但不进左侧列表、不计数。 */
+const DEFAULT_EXCLUDE_PARTS = ['07-对话提炼']
+let EXCLUDE_PARTS = DEFAULT_EXCLUDE_PARTS.slice()
+let EXCLUDE_LOADED = false
+let LIB_DIR = ''
+
+let EXCLUDE_STAMP = null
+
+function loadExcludeParts(libraryDir) {
+  // 支持热改：排除.json 的 mtime 变了就重读，改完点「重新扫描」即可，不必重启
+  const file = path.join(libraryDir || '', '排除.json')
+  let stamp = 0
+  try { stamp = existsSync(file) ? statSync(file).mtimeMs : 0 } catch { stamp = 0 }
+  if (EXCLUDE_LOADED && stamp === EXCLUDE_STAMP) return
+  EXCLUDE_STAMP = stamp
+  EXCLUDE_LOADED = true
+  try {
+    if (!existsSync(file)) return
+    const raw = JSON.parse(readFileSync(file, 'utf8'))
+    if (Array.isArray(raw?.dirFragments)) {
+      // 片段统一成"/"分隔、去掉首尾斜杠，写 \更新日志.md / 更新日志.md / /更新日志.md 都能命中
+      EXCLUDE_PARTS = raw.dirFragments
+        .map((s) => String(s).replace(/[\\/]+/g, '/').replace(/^\/+|\/+$/g, ''))
+        .filter(Boolean)
+    }
+  } catch (error) {
+    console.log('[knowledge-base] 排除.json 读不了，用内置默认排除：', error?.message)
+  }
+}
+
 function skippedDir(name, full) {
+  if (!EXCLUDE_LOADED) loadExcludeParts(LIB_DIR)
+  const fullNorm = String(full).replace(/\\/g, '/')
+  // 拆分卷无条件收录（2026-11-24，0.25.0）：它们不进左侧列表（client 按 volume 过滤），
+  // 但必须有 id，主文件页顶部的「卷」按钮和小标题链接才能打开；因此不受排除清单影响。
+  // 这样也兼容旧版插件：旧代码不认识 volume，靠 排除.json 里的 `_分卷` 保持列表干净。
+  if (/(^|\/)[^/]*_分卷(\/|$)/.test(fullNorm)) return false
+  if (EXCLUDE_PARTS.some((fragment) => fragment && fullNorm.includes(fragment))) return true
   if (SKIP_DIRS.has(name)) return true
   return SKIP_DIR_PATHS.some((fragment) => full.includes(fragment))
 }
@@ -481,6 +522,7 @@ async function listMarkdown(dir, { only, depth = 0 } = {}) {
       continue
     }
     if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.md')) continue
+    if (skippedDir(entry.name, full)) continue
     if (only) {
       const wanted = Array.isArray(only) ? only : [only]
       if (!wanted.includes(entry.name)) continue
@@ -532,13 +574,49 @@ async function writeOverrides(libraryDir, overrides) {
 
 const cache = { at: 0, payload: null }
 
+/* 陌生机器兜底（2026-11-25 加，用户要求「别人装了也能正常用」）：
+   默认清单 DEFAULT_SOURCES 写的是作者那台机器的目录名；别人装完这些目录一个都不存在，
+   列表会是空的。这里对「清单里一条都不存在的根」自动发现候选目录（用 /discover 同一套判据），
+   按目录名推断分类。作者自己的机器上清单里的目录都在 → 这段完全不触发。 */
+function effectiveSources(roots) {
+  const present = []
+  const coveredRoots = new Set()
+  for (const source of SOURCES) {
+    const base = path.isAbsolute(String(source.root ?? '')) ? source.root : roots[source.root]
+    if (!base) continue
+    // 判「这条 source 在这台机器上真的存在」要看 根+path（paths 数组任一存在即可），
+    // 只看根是不够的 —— 陌生机器上根在、但清单里的目录名一个都没有。
+    const targets = source.paths?.length
+      ? source.paths.map((p) => path.join(base, String(p)))
+      : [source.path ? path.join(base, String(source.path)) : base]
+    if (targets.some((t) => existsSync(t))) { present.push(source); coveredRoots.add(source.root) }
+  }
+  // 某个根在清单里一条 source 都没有（或全都不存在）→ 说明这是别人机器，自动发现
+  for (const key of ['work', 'pkg', 'dsh']) {
+    if (coveredRoots.has(key)) continue
+    if (key === 'dsh') continue // ~/.dsh 有固定结构（AGENTS.md / skills），走内置清单，不做猜测
+    const root = roots[key]
+    if (!root || !existsSync(root)) continue
+    let candidates = []
+    try { candidates = discoveredFor({ [key]: root }, [root]) } catch { candidates = [] }
+    for (const cand of candidates.slice(0, 30)) {
+      const rel = path.relative(root, cand.path).split(path.sep).join('/')
+      present.push({ cat: cand.cat, group: path.basename(cand.path), root: key, path: rel || '.', dir: true })
+    }
+    if (candidates.length) console.log(`[knowledge-base] 根「${key}」里没有默认清单的目录，自动发现 ${candidates.length} 个候选`)
+  }
+  return present
+}
+
 async function scanIndex(roots, libraryDir, { force = false } = {}) {
   const now = Date.now()
   if (!force && cache.payload && now - cache.at < 15000) return cache.payload
+  LIB_DIR = libraryDir || LIB_DIR
   const overrides = await readOverrides(libraryDir)
 
   const items = []
-  for (const source of SOURCES) {
+  const sourcesToScan = effectiveSources(roots)
+  for (const source of sourcesToScan) {
     const base = path.isAbsolute(String(source.root ?? '')) ? source.root : roots[source.root]
     if (!base || !existsSync(base)) continue
     const push = (absPath) => {
@@ -553,6 +631,9 @@ async function scanIndex(roots, libraryDir, { force = false } = {}) {
         id,
         rootKey: source.root,
         rel,
+        // 2026-11-24：拆分卷（`X_分卷\01.md`）也进索引，这样主文件里的卷链接能按 id 打开；
+        // 但它不进列表、不算分类计数（client 用 volume 字段过滤），避免 100+ 卷把列表刷屏。
+        volume: /(^|\/)[^/]*_分卷\//.test(rel),
         cat: override?.cat ?? inferred.cat,
         catReason: override?.cat ? '手动指定' : inferred.reason,
         group: /插件与工具归属|插件归属总表|00-通用与全局|^00-插件清单$/.test(baseName) ? '插件归属' : source.group,
@@ -633,7 +714,8 @@ async function scanIndex(roots, libraryDir, { force = false } = {}) {
       }
     }
     item.hard = hard
-    if (hard) item.sizeStat = 'hard'
+    if (item.volume) item.sizeStat = 'ok'          // 卷只在主文件页里打开，不参与四色状态
+    else if (hard) item.sizeStat = 'hard'
     else if (item.chars > HEAVY_CHARS) item.sizeStat = 'heavy'
     else if (!item.routed) item.sizeStat = 'unused'
     else item.sizeStat = 'ok'
@@ -669,8 +751,8 @@ async function scanIndex(roots, libraryDir, { force = false } = {}) {
   const counts = {}
   const refCounts = {}
   for (const category of CATEGORIES) {
-    counts[category.id] = all.filter((item) => item.cat === category.id && item.kind === 'core').length
-    refCounts[category.id] = all.filter((item) => item.cat === category.id && item.kind === 'ref').length
+    counts[category.id] = all.filter((item) => item.cat === category.id && item.kind === 'core' && !item.volume).length
+    refCounts[category.id] = all.filter((item) => item.cat === category.id && item.kind === 'ref' && !item.volume).length
   }
 
   const payload = {
@@ -1384,7 +1466,7 @@ export function apply(ctx, config = {}) {
         try {
           const payload = await scanIndex(roots, libraryDir)
           const routes = await parseRoutes(roots)
-          const nodes = payload.items.map((item) => ({ id: item.id, label: item.title, cat: item.cat, type: item.type, group: item.group, kind: item.kind }))
+          const nodes = payload.items.filter((item) => !item.volume).map((item) => ({ id: item.id, label: item.title, cat: item.cat, type: item.type, group: item.group, kind: item.kind }))
           for (const valve of payload.valves) nodes.push({ id: valve.id, label: valve.title, cat: 'general', type: '阀门', group: '阀门清单', kind: 'core' })
           const edges = []
           for (const route of routes) {

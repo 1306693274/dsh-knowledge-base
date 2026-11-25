@@ -14,7 +14,7 @@ window.__ModuleLoader__.load({
     const React = require('react')
     const h = React.createElement
     const ROUTE = '/plugins/dsh-knowledge-base'
-    const BUILD = '0.24.0'
+    const BUILD = '0.25.0'
 
 // 客户端 Cordis ctx：apply 时存下来，面板里才拿得到 uiWorkspace 这类服务
 let CORDIS = null
@@ -100,6 +100,8 @@ const CAT_LABEL = { general: '通用', design: '设计 Agent', dynamic: '动态 
 .kb-filebar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);flex-wrap:wrap;}
 .kb-path{font-size:11px;color:var(--dsw-alias-label-secondary);word-break:break-all;flex:1;min-width:120px;}
 .kb-dirty{font-size:11px;color:var(--dsw-alias-brand-primary);}
+.kb-volbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);}
+.kb-volbar .kb-btn{font-size:11.5px;}
 .kb-editor{flex:1;min-height:0;display:flex;}
 .kb-textarea{flex:1;width:100%;box-sizing:border-box;resize:none;border:0;outline:none;padding:12px 16px;font-family:var(--ds-font-family-code,ui-monospace,Consolas,monospace);font-size:12.5px;line-height:1.65;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);}
 .kb-side{width:300px;flex:0 0 300px;overflow:auto;border-left:1px solid var(--dsw-alias-border-l1);padding:10px 12px 24px;}
@@ -839,6 +841,7 @@ function KnowledgePanel() {
         const all = [...index.items, ...(index.valves ?? [])]
         const kw = keyword.trim().toLowerCase()
         return all.filter((item) => {
+          if (item.volume) return false
           if (item.cat !== cat) return false
           if (!showRef && item.kind !== 'core') return false
           if (kw && !(item.title.toLowerCase().includes(kw) || (item.rel ?? '').toLowerCase().includes(kw))) return false
@@ -858,6 +861,26 @@ function KnowledgePanel() {
         order.sort((left, right) => (right === '插件归属' ? 1 : 0) - (left === '插件归属' ? 1 : 0))
         return order.map((key) => ({ key, items: map.get(key) }))
       }, [items])
+
+      // ── 拆分卷导航（2026-11-24）：卷不进列表，但主文件页顶部给一排按钮，一键打开 ──
+      const volumeNav = React.useMemo(() => {
+        const allItems = index?.items ?? []
+        const rel = selected?.rel ?? ''
+        if (!rel) return null
+        const dirOf = (mainRel) => mainRel.replace(/[^/]+$/, '')
+        const baseOf = (mainRel) => mainRel.replace(/^.*\//, '').replace(/\.md$/i, '')
+        const volsOf = (mainRel) => {
+          const prefix = dirOf(mainRel) + baseOf(mainRel) + '_分卷/'
+          return allItems.filter((item) => item.volume && (item.rel ?? '').startsWith(prefix))
+        }
+        if (selected.volume) {
+          const mainRel = rel.replace(/([^/]+)_分卷\/[^/]+$/, '$1.md')
+          const main = allItems.find((item) => !item.volume && item.rel === mainRel)
+          return { main, vols: volsOf(mainRel), current: rel }
+        }
+        const vols = volsOf(rel)
+        return vols.length ? { main: null, vols, current: rel } : null
+      }, [index, selected])
 
       if (error) {
         return h('div', { className: 'kb-wrap' }, [
@@ -910,7 +933,7 @@ function KnowledgePanel() {
             h('span', { key: 'k2', className: 'kb-muted' }, '合适'),
             h('span', { key: 'k5', className: 'kb-ring', 'data-status': 'unused' }),
             h('span', { key: 'k6', className: 'kb-muted' }, '没被引用'),
-            h('span', { key: 'note', className: 'kb-muted', style: { marginLeft: 6 } }, '（只有这四色；左侧不再有第二个彩色点）'),
+            h('span', { key: 'note', className: 'kb-muted', style: { marginLeft: 6 } }, '（只有这四色；拆分卷不进左侧列表，在主文件页顶部按钮打开）'),
           ]),
           h('button', {
             key: 'reload',
@@ -987,6 +1010,18 @@ function KnowledgePanel() {
                 key: 'k3', className: 'kb-btn', disabled: busy === 'kind', onClick: () => setKind('reset'),
               }, '改回自动') : null,
             ]),
+            volumeNav && volumeNav.vols.length ? h('div', { key: 'vol', className: 'kb-volbar' }, [
+              volumeNav.main
+                ? h('button', { key: 'back', className: 'kb-btn', onClick: () => openDoc(volumeNav.main) }, '← 回主文件')
+                : h('span', { key: 'lbl', className: 'kb-muted' }, `拆出去的正文（${volumeNav.vols.length} 卷，不进左侧列表）：`),
+              ...volumeNav.vols.map((vol) => h('button', {
+                key: vol.id,
+                className: 'kb-btn',
+                'data-on': selected?.id === vol.id ? '1' : '0',
+                title: vol.rel,
+                onClick: () => openDoc(vol),
+              }, vol.title)),
+            ]) : null,
             h('div', { key: 'ed', className: 'kb-editor' }, doc
               ? h('textarea', {
                 key: 'ta',

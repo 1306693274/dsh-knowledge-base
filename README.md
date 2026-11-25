@@ -95,7 +95,8 @@ The plugin scans what you tell it to scan. Put a `知识库.json` in `~/.dsh/知
 Field reference: `cat` · `root` (`dsh` / `pkg` / `work`) · `path` or `paths` · `dir` (recurse) · `dirOnly` (top level only) · `only` (single filename, e.g. `SKILL.md`).
 
 Resolution order for the roots: plugin config → `知识库.json` → an optional path table in `~/.dsh/` → built-in default.
-Nothing configured? It still runs with a minimal default and prints which root is missing instead of showing a blank screen.
+
+**Nothing configured still works.** On a fresh machine the built-in sources point at folder names that do not exist, so the plugin falls back to **auto-discovery**: it walks the workspace, keeps directories that look like an agent home (`AGENTS.md`, a `skills/` folder, or at least two markdown files), and files them under the category inferred from the folder name. You get a populated list on first launch instead of an empty one; `/discover` shows the same candidates if you want to pin them explicitly.
 
 **For AI agents**: [`docs/AI-接入指南.md`](docs/AI-接入指南.md) is written *for an agent to execute* — field semantics, the exact table header a route table must contain, the section titles a plugin-ownership document must use, a failure lookup table, and a completion checklist. It is also served live at `GET /plugins/dsh-knowledge-base/guide`.
 
